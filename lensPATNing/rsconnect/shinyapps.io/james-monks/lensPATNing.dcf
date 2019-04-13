@@ -1,0 +1,12 @@
+name: lensPATNing
+title: lensPATNing
+username:
+account: james-monks
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 548627
+bundleId: 1679311
+url: https://james-monks.shinyapps.io/lensPATNing/
+when: 1541198373.50848
+asMultiple: FALSE
+asStatic: FALSE

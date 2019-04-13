@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="James Monks" />
+
+<meta name="date" content="2018-09-24" />
+
+<title>Making Pathway Data Useable</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Making Pathway Data Useable</h1>
+<h4 class="author"><em>James Monks</em></h4>
+<h4 class="date"><em>2018-09-24</em></h4>
+
+
+
+<div id="reading-in-data" class="section level2">
+<h2>Reading in Data</h2>
+<p>Initially the data is contained in an excel spreadsheet, with multiple files containing different parts of the information that we require. In constructing this analysis, it is key that we have the protein interaction pathways, along with reference information for the receptors and kinase.</p>
+<div id="pathway" class="section level4">
+<h4>Pathway</h4>
+<p>The first sheet of the pathway data will be used in this example.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pathways_messy &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_excel</span>(<span class="st">&quot;../data-raw/RK_pathways.xlsx&quot;</span>, <span class="dt">sheet =</span> <span class="dv">1</span>, <span class="dt">col_names =</span> <span class="ot">FALSE</span>)
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(pathways_messy))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">X__1</th>
+<th align="left">X__2</th>
+<th align="left">X__3</th>
+<th align="left">X__4</th>
+<th align="left">X__5</th>
+<th align="left">X__6</th>
+<th align="left">X__7</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Eng</td>
+<td align="left">Tgfbr1</td>
+<td align="left">Map3k7</td>
+<td align="left">Ikbkb</td>
+<td align="left">Chuk</td>
+<td align="left">Akt1</td>
+<td align="left">Foxo1</td>
+</tr>
+<tr class="even">
+<td align="left">Eng</td>
+<td align="left">Tgfbr1</td>
+<td align="left">Map3k7</td>
+<td align="left">Nlk</td>
+<td align="left">Lef1</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Eng</td>
+<td align="left">Tgfbr1</td>
+<td align="left">Map3k7</td>
+<td align="left">Camk2a</td>
+<td align="left">Hdac5</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Eng</td>
+<td align="left">Tgfbr1</td>
+<td align="left">Map3k7</td>
+<td align="left">Nlk</td>
+<td align="left">Myb</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">Eng</td>
+<td align="left">Tgfbr1</td>
+<td align="left">Map3k7</td>
+<td align="left">Map2k6</td>
+<td align="left">Mapk14</td>
+<td align="left">Mapk1</td>
+<td align="left">Myt1</td>
+</tr>
+<tr class="even">
+<td align="left">Eng</td>
+<td align="left">Tgfbr1</td>
+<td align="left">Map3k7</td>
+<td align="left">Ikbkb</td>
+<td align="left">Chuk</td>
+<td align="left">Akt1</td>
+<td align="left">Nr4a1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="reference-tables" class="section level3">
+<h3>Reference Tables</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ref_receptors &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_excel</span>(<span class="st">&quot;../data-raw/RKT_Reference.xlsx&quot;</span>, <span class="dt">sheet =</span> <span class="dv">1</span>)
+ref_kinase &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_excel</span>(<span class="st">&quot;../data-raw/RKT_Reference.xlsx&quot;</span>, <span class="dt">sheet =</span> <span class="dv">2</span>)
+ref_TF &lt;-<span class="st"> </span>readxl<span class="op">::</span><span class="kw">read_excel</span>(<span class="st">&quot;../data-raw/RKT_Reference.xlsx&quot;</span>, <span class="dt">sheet =</span> <span class="dv">3</span>)</code></pre></div>
+<div id="receptors" class="section level6">
+<h6>Receptors</h6>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(ref_receptors))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Receptors</th>
+<th align="right">Hoang_LEC</th>
+<th align="right">Hoang_LFC</th>
+<th align="right">Difference</th>
+<th align="left">higher expression in</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Eng</td>
+<td align="right">9.529828</td>
+<td align="right">2.266733</td>
+<td align="right">7.2630948</td>
+<td align="left">LEC</td>
+</tr>
+<tr class="even">
+<td align="left">Tgfbr1</td>
+<td align="right">10.400180</td>
+<td align="right">9.352272</td>
+<td align="right">1.0479082</td>
+<td align="left">LEC</td>
+</tr>
+<tr class="odd">
+<td align="left">Tnfrsf11a</td>
+<td align="right">6.032658</td>
+<td align="right">5.462987</td>
+<td align="right">0.5696712</td>
+<td align="left">Common</td>
+</tr>
+<tr class="even">
+<td align="left">Traf2</td>
+<td align="right">6.635339</td>
+<td align="right">6.928471</td>
+<td align="right">-0.2931321</td>
+<td align="left">Common</td>
+</tr>
+<tr class="odd">
+<td align="left">Rtn4r</td>
+<td align="right">4.580648</td>
+<td align="right">5.292242</td>
+<td align="right">-0.7115940</td>
+<td align="left">Common</td>
+</tr>
+<tr class="even">
+<td align="left">Ngfr</td>
+<td align="right">8.089881</td>
+<td align="right">9.399940</td>
+<td align="right">-1.3100589</td>
+<td align="left">LF</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="kinases" class="section level6">
+<h6>Kinases</h6>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(ref_kinase))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Kinases</th>
+<th align="right">Hoang_LEC</th>
+<th align="right">Hoang_LFC</th>
+<th align="right">Difference</th>
+<th align="left">higher expression in</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Map3k7</td>
+<td align="right">9.543818</td>
+<td align="right">9.825151</td>
+<td align="right">-0.2813331</td>
+<td align="left">Common</td>
+</tr>
+<tr class="even">
+<td align="left">Map2k7</td>
+<td align="right">10.212048</td>
+<td align="right">9.036961</td>
+<td align="right">1.1750862</td>
+<td align="left">LEC</td>
+</tr>
+<tr class="odd">
+<td align="left">Mapk8</td>
+<td align="right">8.468740</td>
+<td align="right">8.399549</td>
+<td align="right">0.0691914</td>
+<td align="left">Common</td>
+</tr>
+<tr class="even">
+<td align="left">Map2k6</td>
+<td align="right">7.548312</td>
+<td align="right">6.733122</td>
+<td align="right">0.8151899</td>
+<td align="left">Common</td>
+</tr>
+<tr class="odd">
+<td align="left">Mapk14</td>
+<td align="right">9.608405</td>
+<td align="right">8.620135</td>
+<td align="right">0.9882701</td>
+<td align="left">Common</td>
+</tr>
+<tr class="even">
+<td align="left">Mapk1</td>
+<td align="right">10.492345</td>
+<td align="right">10.807183</td>
+<td align="right">-0.3148385</td>
+<td align="left">Common</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="reshaping-the-pathways" class="section level2">
+<h2>Reshaping the Pathways</h2>
+<p>The pathway data has an obvious immediate problem. There is information contained about the data in the variable names (position in process) which does not constitute a tidy data structure. This can be rectified by gathering these column names in to a variable, while maintaining a group for the process id that is being described.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pathways_long &lt;-<span class="st"> </span>pathways_messy <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">rowid_to_column</span>(<span class="st">&quot;Process&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">gather</span>(Position, Name, <span class="op">-</span>Process) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="kw">is.na</span>(Name) <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(Process) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">separate</span>(Position, <span class="dt">into =</span> <span class="kw">c</span>(<span class="st">&quot;Nothing&quot;</span>, <span class="st">&quot;Position&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot;X__&quot;</span>, <span class="dt">convert =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">select</span>(Process, Name, Position)
+
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(pathways_long))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Process</th>
+<th align="left">Name</th>
+<th align="right">Position</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Eng</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Tgfbr1</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Map3k7</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Ikbkb</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Chuk</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Akt1</td>
+<td align="right">6</td>
+</tr>
+</tbody>
+</table>
+<p>This produces a data frame that has a grouping process variable, a Name variable for the encoding of the kinase or the receptor, and a position variable that shows where in the interaction chain this occurred. It is unknown whether the Name variable represents a kinase or a receptor. This may be fixed by comparing the pathway data to the reference tables.</p>
+</div>
+<div id="attaching-kind-and-other-metadata" class="section level2">
+<h2>Attaching “Kind” and other metadata</h2>
+<p>In order to attach a type variable there need to be lists of all possible receptors, kinase and transcription factors</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">kinase_list &lt;-<span class="st"> </span>ref_kinase<span class="op">$</span>Kinases
+receptor_list &lt;-<span class="st"> </span>ref_receptors<span class="op">$</span>Receptors
+TF_list &lt;-<span class="st"> </span>ref_TF<span class="op">$</span>TFs
+
+pathways_type &lt;-<span class="st"> </span>pathways_long <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Type =</span> <span class="kw">case_when</span>(
+    Name <span class="op">%in%</span><span class="st"> </span>kinase_list <span class="op">~</span><span class="st"> &quot;Kinase&quot;</span>,
+    Name <span class="op">%in%</span><span class="st"> </span>receptor_list <span class="op">~</span><span class="st"> &quot;Receptor&quot;</span>,
+    Name <span class="op">%in%</span><span class="st"> </span>TF_list <span class="op">~</span><span class="st"> &quot;TF&quot;</span>, 
+    <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span><span class="ot">NA_character_</span>
+  ))</code></pre></div>
+<p>Now the first and last variables can be created. It should be noted that it is not entirely relevant to assign a last variable if the TF is included in this calculation (as they are always the last to be triggered). For this case “Last” shall mean the last Kinase that has been activated.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pathways &lt;-<span class="st"> </span>pathways_type <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">group_by</span>(Process) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">mutate</span>(
+    <span class="dt">First =</span> <span class="kw">case_when</span>(
+      <span class="kw">min</span>(Position) <span class="op">==</span><span class="st"> </span>Position <span class="op">~</span><span class="st"> </span><span class="ot">TRUE</span>, 
+      <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span><span class="ot">FALSE</span>
+    ), 
+    <span class="dt">Last =</span> <span class="kw">case_when</span>(
+      <span class="kw">max</span>(Position) <span class="op">-</span><span class="dv">1</span> <span class="op">==</span><span class="st"> </span>Position <span class="op">~</span><span class="st"> </span><span class="ot">TRUE</span>, 
+      <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span><span class="ot">FALSE</span>
+    ) 
+  ) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ungroup</span>()
+
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(pathways))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Process</th>
+<th align="left">Name</th>
+<th align="right">Position</th>
+<th align="left">Type</th>
+<th align="left">First</th>
+<th align="left">Last</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Eng</td>
+<td align="right">1</td>
+<td align="left">Receptor</td>
+<td align="left">TRUE</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Tgfbr1</td>
+<td align="right">2</td>
+<td align="left">Receptor</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Map3k7</td>
+<td align="right">3</td>
+<td align="left">Kinase</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Ikbkb</td>
+<td align="right">4</td>
+<td align="left">Kinase</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Chuk</td>
+<td align="right">5</td>
+<td align="left">Kinase</td>
+<td align="left">FALSE</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Akt1</td>
+<td align="right">6</td>
+<td align="left">Kinase</td>
+<td align="left">FALSE</td>
+<td align="left">TRUE</td>
+</tr>
+</tbody>
+</table>
+<p>This is starting to look pretty good as a workable data set. There may be other things to add to it later (including defining functions that can do a lot of this work), however, this is a good start and will be functional for the visualisations.</p>
+<div id="this-is-saved-in-a-dedicated-script-in-the-data-raw-folder-hence-it-wont-be-saved-here." class="section level4">
+<h4>This is saved in a dedicated script in the data-raw folder, hence it wont be saved here.</h4>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

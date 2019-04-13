@@ -1,0 +1,139 @@
+---
+title: "Ranking Kinases"
+author: "James Monks"
+date: "24/09/2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lensdna)
+```
+
+
+In order to visualise the interaction pathways between receptors, kinases and transcription factors, the kinases must be laid out in a logical format. We can create this layout for the kinases based on their relative positions in each of their chains. To start, a new position variable needs to be created that separates out kinase position from standard positions.
+
+## Creating new Kinase Position Variable
+
+Kinases need to be ranked by their position in the chain, however, receptors and transcription factors should not factor in to this. This ranking can then be transformed into a proportion by dividing by the length of the chain, which can be read as "Proportion of the way through the chain in which this kinase was triggered".
+
+First I create the kinase paths object that contains the position of the kinase constrained to only the kinase section of the path. The position proportion is also calculated through dividing each of these positions by the length of the kinase chain. 
+
+```{r Kinase Position Variable Chunk}
+data("pathways")
+kinase_path <- pathways %>% 
+  filter(Type == "Kinase") %>% 
+  select(Process, Name, Position) %>% 
+  add_count(Process) %>% 
+  rename(Kinase_Length = n) %>% 
+  group_by(Process) %>% 
+  mutate(Position = row_number()) %>%
+  ungroup() %>% 
+  mutate(Position_Prop = case_when(
+    Kinase_Length == 1 ~0.5, 
+    TRUE ~ (Position-1)/(Kinase_Length-1)
+  ))
+
+
+
+```
+
+
+
+## Creating Rankings 
+
+Each kinase type is then ranked based on the average proportional position. This is provides a relative position for the kinases total, allowing for some information on the importance at each stage of the interaction and a layout for the visualisation. For scatter plot purposes this has been transformed into a negative quantity (in order to have the end of the process at the bottom of the page, note this is not the case in the histogram).
+
+
+```{r}
+kinase_ranks <- kinase_path %>% 
+  group_by(Name) %>% 
+  summarise(ranking = mean(Position_Prop)*-1, 
+            n = n())
+kinase_ranks
+
+```
+
+#### Distribution Visualisation
+Lets look at the distribution of these ranks in order to get an idea of where most of the kinase nodes sit in the chain.
+```{r}
+kinase_ranks %>% 
+  mutate(ranking = ranking*-1) %>% 
+  ggplot(aes(x = ranking)) + 
+  geom_histogram() + 
+  xlab("Mostly at Start of Chain                                                                                    Mostly at End of Chain")
+```
+
+
+This shows that many of the kinase types in the data are exclusively positioned at the end of the chain (end of the kinase chain meaning the last kinase before a TF). It also shows that there are not very many kinases that are exclusively at the beginning of the kinase interaction chain, meaning that kinases that interact with receivers do not solely have that role (as opposed to many kinases interacting with a TF that do). Other than these notes the distribution reads relatively straight forwards in that there is a fair amount that are in the middle (no particular pattern in appearance indicated) and that there are interacting mostly towards the beginning. 
+
+
+## Sample Visualisation
+In order to use this ranking in a visualisation, a scatter plot needs to be drawn. As we have targeted a vertical process visualisation as an end goal, the ranking can be used as a y value, providing a logical and reasoned position for each of these kinases. An x value can be generated at random around zero (this in the current working does not ultimately matter as axes will be left off).
+
+This results in the plot below, with n being the number of the type of each kinase. 
+
+
+```{r}
+kinase_ranks %>% 
+  ggplot(aes(x = 0, y = ranking, size = n)) +
+  geom_jitter(height = 0) + 
+  theme_minimal()
+```
+
+
+###### Note 1
+It would be interesting to colour these by type of kinase if there was any logical categorical groups for the kinase, however is not pertinent currently. 
+
+###### Note 2
+The x axis may ultimately be given a scored value to assist with the graphical layout of the visualisations, but for now is left as random. A possible method would be to move kinases with similar y scores that have interactions between them closer together and separate them from pathways that are not related. This would require a piece-wise calculation for every kinase however, so it would be somewhat computationally intensive (although only needs to be done once).
+
+
+
+## Repeating the Process for Receptors
+
+```{r}
+receptor_path <- pathways %>% 
+  filter(Type == "Receptor") %>% 
+  select(Process, Name, Position) %>% 
+  add_count(Process) %>% 
+  rename(Receptor_Length = n) %>% 
+  group_by(Process) %>% 
+  mutate(Position = row_number()) %>%
+  ungroup() %>% 
+  mutate(Position_Prop = case_when(
+    Receptor_Length == 1 ~0.5, 
+    TRUE ~ (Position-1)/(Receptor_Length-1)
+  ))
+```
+
+
+
+```{r}
+receptor_ranks <- receptor_path %>% 
+  group_by(Name) %>% 
+  summarise(ranking = mean(Position_Prop)*-1, 
+            n = n())
+
+
+
+receptor_ranks %>% 
+  mutate(ranking = ranking*-1) %>% 
+  ggplot(aes(x = ranking)) + 
+  geom_histogram() + 
+  xlab("Mostly at Start of Chain                                                                                    Mostly at End of Chain")
+
+
+```
+
+```{r}
+receptor_ranks %>% 
+  ggplot(aes(x = 0, y = ranking, size = n)) +
+  geom_jitter(height = 0) + 
+  theme_minimal()
+```
+

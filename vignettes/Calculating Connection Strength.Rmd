@@ -1,0 +1,53 @@
+---
+title: "Pairwise Calculation of Kinases Connections"
+author: "James Monks"
+date: "29/09/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lensdna)
+```
+
+
+```{r}
+kinase_path <- pathways %>% 
+  filter(Type == "Kinase") %>% 
+  select(Process, Name, Position) %>% 
+  add_count(Process) %>% 
+  rename(Kinase_Length = n) %>% 
+  group_by(Process) %>% 
+  mutate(Position = row_number()) %>%
+  ungroup() %>% 
+  mutate(Position_Prop = case_when(
+    Kinase_Length == 1 ~ 0.5, 
+    TRUE ~ (Position - 1)/(Kinase_Length - 1)
+  ))
+kinase_path
+```
+
+
+
+
+
+
+```{r}
+pairs <- pathways %>% 
+  split(.$Process) %>% 
+  map_df(~{
+    mutate(.x, Name2 = lead(Name)) %>% 
+      select(Name, Name2) %>% 
+      head(-1)
+  }) 
+
+pairs_count <- pairs %>% 
+  count(Name, Name2) %>% 
+  arrange(desc(n))
+pairs_count
+
+use_data(pairs_count, overwrite = TRUE)
+```
+
+

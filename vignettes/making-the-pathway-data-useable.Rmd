@@ -1,0 +1,107 @@
+---
+title: "Making Pathway Data Useable"
+author: "James Monks"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(tidyverse)
+library(readxl)
+library(usethis)
+```
+
+## Reading in Data
+Initially the data is contained in an excel spreadsheet, with multiple files containing different parts of the information that we require. In constructing this analysis, it is key that we have the protein interaction pathways, along with reference information for the receptors and kinase. 
+
+
+#### Pathway
+The first sheet of the pathway data will be used in this example.
+```{r read data}
+pathways_messy <- readxl::read_excel("../data-raw/RK_pathways.xlsx", sheet = 1, col_names = FALSE)
+knitr::kable(head(pathways_messy))
+```
+
+### Reference Tables
+```{r reference creation}
+ref_receptors <- readxl::read_excel("../data-raw/RKT_Reference.xlsx", sheet = 1)
+ref_kinase <- readxl::read_excel("../data-raw/RKT_Reference.xlsx", sheet = 2)
+ref_TF <- readxl::read_excel("../data-raw/RKT_Reference.xlsx", sheet = 3)
+```
+
+###### Receptors
+```{r rec print}
+knitr::kable(head(ref_receptors))
+```
+
+###### Kinases
+```{r kin print}
+knitr::kable(head(ref_kinase))
+```
+
+## Reshaping the Pathways
+
+The pathway data has an obvious immediate problem. There is information contained about the data in the variable names (position in process) which does not constitute a tidy data structure. This can be rectified by gathering these column names in to a variable, while maintaining a group for the process id that is being described. 
+
+```{r}
+pathways_long <- pathways_messy %>% 
+  rowid_to_column("Process") %>% 
+  gather(Position, Name, -Process) %>% 
+  filter(is.na(Name) == FALSE) %>% 
+  arrange(Process) %>% 
+  separate(Position, into = c("Nothing", "Position"), sep = "X__", convert = TRUE) %>% 
+  select(Process, Name, Position)
+
+knitr::kable(head(pathways_long))
+```
+
+This produces a data frame that has a grouping process variable, a Name variable for the encoding of the kinase or the receptor, and a position variable that shows where in the interaction chain this occurred. It is unknown whether the Name variable represents a kinase or a receptor. This may be fixed by comparing the pathway data to the reference tables.
+
+## Attaching "Kind" and other metadata
+In order to attach a type variable there need to be lists of all possible receptors, kinase and transcription factors
+```{r}
+kinase_list <- ref_kinase$Kinases
+receptor_list <- ref_receptors$Receptors
+TF_list <- ref_TF$TFs
+
+pathways_type <- pathways_long %>% 
+  mutate(Type = case_when(
+    Name %in% kinase_list ~ "Kinase",
+    Name %in% receptor_list ~ "Receptor",
+    Name %in% TF_list ~ "TF", 
+    TRUE ~ NA_character_
+  ))
+```
+
+
+Now the first and last variables can be created. It should be noted that it is not entirely relevant to assign a last variable if the TF is included in this calculation (as they are always the last to be triggered). For this case "Last" shall mean the last Kinase that has been activated.
+
+```{r}
+pathways <- pathways_type %>% 
+  group_by(Process) %>% 
+  mutate(
+    First = case_when(
+      min(Position) == Position ~ TRUE, 
+      TRUE ~ FALSE
+    ), 
+    Last = case_when(
+      max(Position) -1 == Position ~ TRUE, 
+      TRUE ~ FALSE
+    ) 
+  ) %>% 
+  ungroup()
+
+knitr::kable(head(pathways))
+```
+
+This is starting to look pretty good as a workable data set. There may be other things to add to it later (including defining functions that can do a lot of this work), however, this is a good start and will be functional for the visualisations. 
+
+#### This is saved in a dedicated script in the data-raw folder, hence it wont be saved here. 

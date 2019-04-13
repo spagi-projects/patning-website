@@ -1,0 +1,141 @@
+---
+ntitle: "Sandbox"
+author: "James Monks"
+date: "21/09/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lensdna)
+library(tidyverse)
+```
+
+
+
+## Trial Plots
+
+```{r}
+jittered_ranks <- kinase_ranks %>% 
+  mutate(jitter = runif(nrow(.))) %>% 
+  select(-n)
+
+
+joined_data <- pairs_count %>% 
+  left_join(jittered_ranks, c("Name" = "Name")) %>% 
+  left_join(jittered_ranks, c("Name2" = "Name"))
+
+library(ggrepel)
+p <- jittered_ranks %>% 
+  ggplot(aes(x = jitter, y = ranking, label = Name)) + 
+  geom_point() +
+  geom_segment(aes(x = jitter.x, xend = jitter.y, y = ranking.x, yend = ranking.y, alpha = n), data = joined_data)
+
+p 
+p + geom_text_repel() 
+
+```
+
+
+
+
+```{r}
+receptor_ranks <- receptor_path %>% 
+  group_by(Name) %>% 
+  summarise(ranking = mean(Position_Prop)*-1 +1.5, 
+            n = n())
+
+receptor_ranks %>% 
+  mutate(ranking = ranking*-1) %>% 
+  ggplot(aes(x = ranking)) + 
+  geom_histogram() + 
+  xlab("Mostly at Start of Chain                                                                                    Mostly at End of Chain")
+```
+
+
+
+```{r}
+receptor_jitter <- receptor_ranks %>% 
+  mutate(
+    jitter = runif(nrow(.))
+  ) %>% 
+  select(-n)
+
+TF_Jitter <- pathways %>% 
+  filter(Type == "TF") %>% 
+  select(Process, Name, Position) %>% 
+  add_count(Process) %>% 
+  rename(Kinase_Length = n) %>% 
+  group_by(Process) %>% 
+  mutate(Position = row_number()) %>%
+  ungroup() %>% 
+  mutate(Position_Prop = case_when(
+    Kinase_Length == 1 ~0.5, 
+    TRUE ~ (Position-1)/(Kinase_Length-1)
+  )) %>% 
+  group_by(Name) %>% 
+  summarise(ranking = mean(Position_Prop)*-1 - 1.5, 
+            n = n()) %>% 
+  mutate(
+    jitter = runif(nrow(.))
+  ) %>% 
+  select(-n)
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+library(tidygraph)
+library(ggraph)
+
+pairs_count %>% 
+  as_tbl_graph() %>% 
+  ggraph() + 
+  geom_node_point() + 
+  geom_edge_link(aes(alpha = n))
+```
+
+```{r}
+
+jittered_data <- receptor_jitter %>% 
+  bind_rows(jittered_ranks) %>% 
+  bind_rows(TF_Jitter)
+
+
+joined_data <- pairs_count %>% 
+  left_join(jittered_data, c("Name" = "Name")) %>% 
+  left_join(jittered_data, c("Name2" = "Name"))
+
+
+p <- jittered_data %>% 
+  ggplot(aes(x = jitter, y = ranking, label = Name)) + 
+  geom_point() +
+  geom_segment(aes(x = jitter.x, xend = jitter.y, y = ranking.x, yend = ranking.y, alpha = n), data = joined_data)
+
+p + theme_minimal()
+
+p + 
+  annotate(xmin = 0, xmax = 1, ymin = 0.5, ymax = 1.9, colour = "red", geom = "rect", fill = "red", alpha = 0.1) + 
+  annotate(x = 0.5, y = 1.7, label = "Receptor", colour = "red", geom = "label") +
+    annotate(xmin = 0, xmax = 1, ymin = -1.5, ymax = 0.5, colour = "blue", geom = "rect", fill = "blue", alpha = 0.1) + 
+  annotate(x = 0.5, y = 0.2, label = "Kinase", colour = "blue", geom = "label") + 
+    annotate(xmin = 0, xmax = 1, ymin = -2.1, ymax = -1.5, colour = "forestgreen", geom = "rect", fill = "forestgreen", alpha = 0.1) + 
+  annotate(x = 0.5, y = -1.7, label = "TF", colour = "forestgreen", geom = "label") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+jittered_data
+```
+
